@@ -5,4 +5,4 @@ app.get('/', (req, res) => {
   res.send('status: ' + res.statusCode + '<br/>Hello World!');
 })
 
-app.listen(8080, () => console.log(`Example app listening on port 8080!`))
+app.listen(8080, () => console.log(`This is raised server on port 8080`))
