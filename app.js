@@ -3,83 +3,108 @@ import dotenv from 'dotenv';
 import axios from 'axios';
 import multer from 'multer';
 const upload = multer({ dest: 'uploads/' })
-dotenv.config({path:'./keys.env'});
+dotenv.config({ path: './keys.env' });
 const app = express();
+//axios распознает только полный url адрес, в котором указан протокол
 const WEBSITE_HOST = process.env.WEBSITE_HOST;
 const REAL_1C_HOST = process.env.REAL_1C_HOST;
-let PROXY_PASS;
-const router = express.Router();
+const PROXY_PASS = process.env.PROXY_PASS;
 
 app.get('/', (req, res) => {
-   res.send('status: ' + res.statusCode + '<br/>Hello World!');
+  res.send('status: ' + res.statusCode + '<br/>Hello World!');
 })
 
 //Получение дебиторской задолженности
 app.get('/user/debtInfo', (req, res) => {
-  if(PROXY_PASS){
-    const req1C = app.get(REAL_1C_HOST);
-    res.send(req1C)
+  if (PROXY_PASS) {
+    axios.get('http://localhost:8020/')
+      .then(res => {
+        console.log(res.data);
+      })
+    return;
   }
-  else{res.json({
-      debt: 4,
-      paydate: "",
-      overdebt: 8,
-      paysum: 15
-  })}
+
+  res.json({
+    debt: 4,
+    paydate: "",
+    overdebt: 8,
+    paysum: 15
+  })
+
 })
 
 //Создание заказа 
-router.post('/', upload.none(), (req, res) => {
-  if(PROXY_PASS){
-    const req1C = app.get(REAL_1C_HOST);
-    res.send(req1C)
+app.post('/order', upload.none(), (req, res) => {
+  if (PROXY_PASS) {
+    axios.get('http://localhost:8020/')
+      .then(res => {
+        console.log(res.data);
+      })
+    return;
   }
-  else{
-  if(!req.body) return res.sendStatus(400);
-  res.send({orderId: 1,
-            clientId: 10,
-            items: [{
-              code: 16,
-              pkg: 23,
-              price: 42,
-              quantity: 4,
-              comment: ''
-}]});
-  res.sendStatus(200);
-  axios.post('/', {orderId: 1,
-                  clientId: 10,
-                  items: [{
-                    code: 16,
-                    pkg: 23,
-                    price: 42,
-                    quantity: 4,
-                    comment: ''
-  }]});
-  res.sendStatus(200);
-}
+  // парсер multer обрабатывает multipart/formdata, надеюсь, что реализовал правильно
+  // также он может парсить отправленные данные, например, из формы
+  // насколько я понял, это не требуется, поэтому проверку ниже закомментил
+  // if (!req.body) return res.status(400).send('Error');
+  res.send({
+    orderId: 1,
+    clientId: 10,
+    items: [{
+      code: 16,
+      pkg: 23,
+      price: 42,
+      quantity: 4,
+      comment: ''
+    }]
+  }).status(200);
+
+  return axios.post('http://localhost:8010/', {
+    orderId: 1,
+    clientId: 10,
+    items: [{
+      code: 11,
+      pkg: 22,
+      price: 33,
+      quantity: 4,
+      comment: ''
+    }]
+  })
+    .then(res => {
+      console.log(res.data);
+      console.log(res.status);
+      return;
+    })
+    .catch(error => {
+      console.log(error);
+    })
 })
 
 //Получение моего ассортимента
-router.get('/recommended', (req, res) => {
-  if(PROXY_PASS){
-    const req1C = app.get(REAL_1C_HOST);
-    res.send(req1C)
+app.get('/order/recommended', (req, res) => {
+  if (PROXY_PASS) {
+    axios.get('http://localhost:8020/')
+      .then(res => {
+        console.log(res.data);
+      })
+    return;
   }
-  else{
-  const recObj = {[req.query.userId] : 100}
-  res.json(recObj)
-  }
-})
 
-app.use('/order', router)
+  const recObj = { [req.query.userId]: 100 };
+  res.json(recObj)
+
+})
 
 //Получение акта сверки
 app.get('/reconciliation', (req, res) => {
-  if(PROXY_PASS){
-    const req1C = app.get(REAL_1C_HOST);
-    res.send(req1C)
+  if (PROXY_PASS) {
+    axios.get('http://localhost:8020/')
+      .then(res => {
+        console.log(res.data);
+      })
+    return;
   }
-  else{res.download('./6.pdf')}
+
+  res.download('./6.pdf')
 })
 
-app.listen(WEBSITE_HOST)
+app.listen(8000, console.log('Server listen'))
