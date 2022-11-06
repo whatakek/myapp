@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 //Получение дебиторской задолженности
 app.get('/user/debtInfo', (req, res) => {
   if (PROXY_PASS) {
-    axios.get('http://localhost:8020/')
+    axios.get(REAL_1C_HOST)
       .then(res => {
         console.log(res.data);
       })
@@ -36,7 +36,7 @@ app.get('/user/debtInfo', (req, res) => {
 //Создание заказа 
 app.post('/order', upload.none(), (req, res) => {
   if (PROXY_PASS) {
-    axios.get('http://localhost:8020/')
+    axios.get(REAL_1C_HOST)
       .then(res => {
         console.log(res.data);
       })
@@ -58,7 +58,7 @@ app.post('/order', upload.none(), (req, res) => {
     }]
   }).status(200);
 
-  return axios.post('http://localhost:8010/', {
+  return axios.post(WEBSITE_HOST, {
     orderId: 1,
     clientId: 10,
     items: [{
@@ -82,7 +82,7 @@ app.post('/order', upload.none(), (req, res) => {
 //Получение моего ассортимента
 app.get('/order/recommended', (req, res) => {
   if (PROXY_PASS) {
-    axios.get('http://localhost:8020/')
+    axios.get(REAL_1C_HOST)
       .then(res => {
         console.log(res.data);
       })
@@ -97,7 +97,7 @@ app.get('/order/recommended', (req, res) => {
 //Получение акта сверки
 app.get('/reconciliation', (req, res) => {
   if (PROXY_PASS) {
-    axios.get('http://localhost:8020/')
+    axios.get(REAL_1C_HOST)
       .then(res => {
         console.log(res.data);
       })
