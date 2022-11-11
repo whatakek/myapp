@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import multer from 'multer';
+import request from 'request';
+import { readFileSync } from 'fs';
 const upload = multer({ dest: 'uploads/' })
 dotenv.config({ path: './keys.env' });
 const app = express();
@@ -10,19 +12,34 @@ const WEBSITE_HOST = process.env.WEBSITE_HOST;
 const REAL_1C_HOST = process.env.REAL_1C_HOST;
 const PROXY_PASS = process.env.PROXY_PASS;
 
+if (PROXY_PASS) {
+  app.use((req, res) => {
+    let url = REAL_1C_HOST + req.url;
+    if (req.is('json')) {
+      req.pipe(request({
+        uri: url,
+        headers: req.headers,
+        qs: req.query,
+        body: req.readable ? undefined : req.body,
+        json: true,
+      })).pipe(res);
+      return;
+    }
+    req.pipe(request({ 
+      uri: url, 
+      headers: req.headers, 
+      qs: req.query, 
+      body: req.readable ? undefined : req.body })).pipe(res);
+    console.log(res)
+  })
+}
+
 app.get('/', (req, res) => {
   res.send('status: ' + res.statusCode + '<br/>Hello World!');
 })
 
 //Получение дебиторской задолженности
 app.get('/user/debtInfo', (req, res) => {
-  if (PROXY_PASS) {
-    axios.get(REAL_1C_HOST)
-      .then(res => {
-        console.log(res.data);
-      })
-    return;
-  }
 
   res.json({
     debt: 4,
@@ -35,17 +52,7 @@ app.get('/user/debtInfo', (req, res) => {
 
 //Создание заказа 
 app.post('/order', upload.none(), (req, res) => {
-  if (PROXY_PASS) {
-    axios.get(REAL_1C_HOST)
-      .then(res => {
-        console.log(res.data);
-      })
-    return;
-  }
-  // парсер multer обрабатывает multipart/formdata, надеюсь, что реализовал правильно
-  // также он может парсить отправленные данные, например, из формы
-  // насколько я понял, это не требуется, поэтому проверку ниже закомментил
-  // if (!req.body) return res.status(400).send('Error');
+
   res.send({
     orderId: 1,
     clientId: 10,
@@ -70,7 +77,6 @@ app.post('/order', upload.none(), (req, res) => {
     }]
   })
     .then(res => {
-      console.log(res.data);
       console.log(res.status);
       return;
     })
@@ -81,13 +87,6 @@ app.post('/order', upload.none(), (req, res) => {
 
 //Получение моего ассортимента
 app.get('/order/recommended', (req, res) => {
-  if (PROXY_PASS) {
-    axios.get(REAL_1C_HOST)
-      .then(res => {
-        console.log(res.data);
-      })
-    return;
-  }
 
   const recObj = { [req.query.userId]: 100 };
   res.json(recObj)
@@ -96,15 +95,11 @@ app.get('/order/recommended', (req, res) => {
 
 //Получение акта сверки
 app.get('/reconciliation', (req, res) => {
-  if (PROXY_PASS) {
-    axios.get(REAL_1C_HOST)
-      .then(res => {
-        console.log(res.data);
-      })
-    return;
-  }
 
-  res.download('./6.pdf')
+  let data = readFileSync('./6.pdf');
+  res.contentType('application/pdf');
+  res.send(data);
+  
 })
 
 app.listen(8000, console.log('Server listen'))
