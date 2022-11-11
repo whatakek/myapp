@@ -25,11 +25,12 @@ if (PROXY_PASS) {
       })).pipe(res);
       return;
     }
-    req.pipe(request({ 
-      uri: url, 
-      headers: req.headers, 
-      qs: req.query, 
-      body: req.readable ? undefined : req.body })).pipe(res);
+    req.pipe(request({
+      uri: url,
+      headers: req.headers,
+      qs: req.query,
+      body: req.readable ? undefined : req.body
+    })).pipe(res);
     console.log(res)
   })
 }
@@ -40,19 +41,16 @@ app.get('/', (req, res) => {
 
 //Получение дебиторской задолженности
 app.get('/user/debtInfo', (req, res) => {
-
   res.json({
     debt: 4,
     paydate: "",
     overdebt: 8,
     paysum: 15
   })
-
 })
 
 //Создание заказа 
 app.post('/order', upload.none(), (req, res) => {
-
   res.send({
     orderId: 1,
     clientId: 10,
@@ -87,19 +85,15 @@ app.post('/order', upload.none(), (req, res) => {
 
 //Получение моего ассортимента
 app.get('/order/recommended', (req, res) => {
-
   const recObj = { [req.query.userId]: 100 };
   res.json(recObj)
-
 })
 
 //Получение акта сверки
 app.get('/reconciliation', (req, res) => {
-
   let data = readFileSync('./6.pdf');
   res.contentType('application/pdf');
   res.send(data);
-  
 })
 
 app.listen(8000, console.log('Server listen'))
